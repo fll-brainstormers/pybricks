@@ -1,32 +1,42 @@
+from pybricks.pupdevices import Motor
+from pybricks.parameters import Port, Direction, Side, Color, Button
+from pybricks.robotics import DriveBase
 from pybricks.hubs import PrimeHub
-from pybricks.parameters import Side, Color, Button
 from pybricks.tools import wait
+from Tour_mission import tour_mission
+from Traverse import traverse
+from Studio_mission import studio_mission
 
 hub = PrimeHub()
+hub.display.orientation(up=Side.RIGHT)
 
-hub.display.orientation(up=Side.BOTTOM)
+left_motor = Motor(Port.A, Direction.COUNTERCLOCKWISE)
+right_motor = Motor(Port.E)
+module_motor = Motor(Port.C)
+
+drive_base = DriveBase(left_motor, right_motor, wheel_diameter=56, axle_track=147)
 
 def selector(fns, selected=0):
     while True:
-        print("selected", selected)
+        print("selected", selected + 1)
         hub.display.number(selected + 1)
         pressed = waitForButton()
-        if Button.RIGHT in pressed and Button.LEFT in pressed:
+        if Button.BLUETOOTH in pressed:
             return selected
-        elif Button.RIGHT in pressed:
-            selected=(selected-1)%len(fns)
         elif Button.LEFT in pressed:
+            selected=(selected-1)%len(fns)
+        elif Button.RIGHT in pressed:
             selected=(selected+1)%len(fns)
         wait(200)
 
-def menu(fns):
+def menu(fns, drive_base, module_motor):
     selected = -1
     
     while True:
         hub.light.on(Color.ORANGE)
         selected = selector(fns, (selected+1)%len(fns))
         hub.light.on(Color.GREEN)
-        locals()[fns[selected]]()
+        locals()[fns[selected]](drive_base, module_motor)
     
 def waitForButton():
     def concatUnique(a, b):
@@ -43,7 +53,4 @@ def waitForButton():
         wait(10)
     return pressed
 
-def fn():
-    wait(1000)
-
-menu(['fn', 'fn', 'fn'])
+menu(['studio_mission', 'traverse', 'tour_mission'], drive_base, module_motor)
